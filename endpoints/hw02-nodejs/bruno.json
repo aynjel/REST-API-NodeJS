@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "hw02-nodejs",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

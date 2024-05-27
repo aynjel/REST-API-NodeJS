@@ -1,0 +1,19 @@
+meta {
+  name: POST contact
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{endpoint}}/contacts
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Saring",
+    "email": "saring@test.com",
+    "phone": "123456789"
+  }
+}

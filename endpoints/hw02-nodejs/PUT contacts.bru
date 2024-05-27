@@ -1,0 +1,19 @@
+meta {
+  name: PUT contacts
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{endpoint}}/contacts/d8ee2e8f-6e21-4cc7-8906-0407e80b745e
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Saring Updated",
+    "email": "saring@testu.com",
+    "phone": "123456789234"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "hw03-mongodb",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
