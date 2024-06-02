@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "name": "hw03-mongodb",
+  "name": "GOIT NodeJS",
   "type": "collection",
   "ignore": [
     "node_modules",
