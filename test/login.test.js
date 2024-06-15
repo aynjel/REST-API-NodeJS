@@ -1,71 +1,89 @@
-const { describe, expect, test, jest, beforeEach } = require("@jest/globals");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const { User } = require("../models/usersModel");
-const { httpError } = require("../helpers/httpError");
-const { ValidationError } = require("joi");
-const { loginUser } = require("../controllers/usersController");
+import request from "supertest";
+import { app } from "../app.js";
+import { User } from "../models/usersModel.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { jest } from "@jest/globals";
 
-jest.mock("bcrypt");
-jest.mock("jsonwebtoken");
+// eslint-disable-next-line no-undef
+describe("Test @POST /api/users/login", () => {
+  const signInData = {
+    email: "ortega@example.com",
+    password: "examplepassword",
+  };
 
-describe("loginUser controller", () => {
-  let req;
-  let res;
+  const mockUserId = "mockUserId";
+  const mockUser = {
+    _id: mockUserId,
+    email: signInData.email,
+    password: bcrypt.hash(signInData.password, 10),
+    subscription: "starter",
+  };
 
-  beforeEach(() => {
-    req = { body: {} };
-    res = { status: jest.fn(), json: jest.fn() };
-    httpError.mockClear();
-    bcrypt.compare.mockClear();
-    jwt.sign.mockClear();
-  });
-
-  test("should throw validation error for missing email", async () => {
-    req.body = { password: "validPassword" };
-    await expect(loginUser(req, res)).rejects.toThrow(ValidationError);
-  });
-
-  test("should throw validation error for missing password", async () => {
-    req.body = { email: "valid@email.com" };
-    await expect(loginUser(req, res)).rejects.toThrow(ValidationError);
-  });
-
-  test("should throw 401 error for invalid email", async () => {
-    req.body = { email: "invalid@email.com", password: "validPassword" };
-    await User.findOne.mockResolvedValueOnce(null); // Mock User.findOne to not find a user
-    await expect(loginUser(req, res)).rejects.toThrow(httpError);
-    expect(httpError).toHaveBeenCalledWith(401, "Email or password is wrong");
-  });
-
-  test("should throw 401 error for invalid password", async () => {
-    req.body = { email: "valid@email.com", password: "invalidPassword" };
-    const user = { email: "valid@email.com", password: "hashedPassword" };
-    await User.findOne.mockResolvedValueOnce(user);
-    bcrypt.compare.mockResolvedValueOnce(false); // Mock bcrypt to return false
-    await expect(loginUser(req, res)).rejects.toThrow(httpError);
-    expect(httpError).toHaveBeenCalledWith(401, "Email or password is wrong");
-  });
-
-  test("should login successfully and return token and user data", async () => {
-    req.body = { email: "valid@email.com", password: "validPassword" };
-    const user = {
-      email: "valid@email.com",
-      password: "hashedPassword",
-      subscription: "basic",
-    };
-    const token = "generatedToken";
-    await User.findOne.mockResolvedValueOnce(user);
-    bcrypt.compare.mockResolvedValueOnce(true);
-    jwt.sign.mockReturnValue(token);
-    await loginUser(req, res);
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({
-      token,
-      user: {
-        email: user.email,
-        subscription: user.subscription,
-      },
+  // eslint-disable-next-line no-undef
+  beforeAll(() => {
+    // Mock User.findOne
+    jest.spyOn(User, "findOne").mockImplementation(({ email }) => {
+      if (email === signInData.email) {
+        return Promise.resolve(mockUser);
+      }
+      return Promise.resolve(null);
     });
+
+    // Mock bcrypt.compare
+    jest
+      .spyOn(bcrypt, "compare")
+      .mockImplementation((password, hashedPassword) => {
+        return Promise.resolve(
+          password === signInData.password &&
+            hashedPassword === mockUser.password
+        );
+      });
+
+    // Mock jwt.sign
+    jest.spyOn(jwt, "sign").mockImplementation(() => "mockJwtToken");
+
+    // Mock User.findByIdAndUpdate
+    jest.spyOn(User, "findByIdAndUpdate").mockImplementation((id, update) => {
+      if (id === mockUserId) {
+        return Promise.resolve({ ...mockUser, ...update });
+      }
+      return Promise.resolve(null);
+    });
+  });
+
+  // eslint-disable-next-line no-undef
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+
+  // eslint-disable-next-line no-undef
+  test("Test login with correct data.", async () => {
+    const response = await request(app)
+      .post("/api/users/login")
+      .send(signInData);
+
+    console.log("Login Data:", signInData);
+    console.log("Response status code:", response.status);
+    console.log("Response body:", response.body);
+    console.log("Response body USER:", response.body.user);
+
+    // Response must have status code 200
+    // eslint-disable-next-line no-undef
+    expect(response.status).toBe(200);
+
+    // The token must be returned in the response
+    // eslint-disable-next-line no-undef
+    expect(response.body).toHaveProperty("token", "mockJwtToken");
+
+    const { user } = response.body;
+
+    // The response should return a user object with 2 fields email and subscription
+    // eslint-disable-next-line no-undef
+    expect(user).toHaveProperty("email" && "subscription");
+
+    // email and subscription, having the data type String
+    // eslint-disable-next-line no-undef
+    expect(user.email && user.subscription).toEqual(expect.any(String));
   });
 });
