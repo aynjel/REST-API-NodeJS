@@ -1,0 +1,21 @@
+meta {
+  name: Resend Verify Email
+  type: http
+  seq: 6
+}
+
+post {
+  url: http://localhost:3000/api/users/verify
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2NzAzMWMzMWE3NDFjNDRlYmY3ZDY4MCIsImlhdCI6MTcxODYyODk5NiwiZXhwIjoxNzE4NzExNzk2fQ.UZ0IOXJ9sy4kXw-hYEtP3TJTFkX4I2mooaVGxmVYMzU
+}
+
+body:json {
+  {
+    "email": "aynjel76@gmail.com"
+  }
+}
